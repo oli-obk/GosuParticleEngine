@@ -7,21 +7,21 @@
 #include "fast_math.hpp"
 
 static Vertex2d* write_particle_vertices(Vertex2d* vertex,
-                                         Particle* particle,
+                                         Particle& particle,
                                          const uint width, const uint height);
 static uint write_vertices_for_particles(Vertex2d* vertex,
-                                         Particle* first, Particle* last,
+                                         ParticleIterator first, ParticleIterator end,
                                          const uint width, const uint height);
 
 static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
                                                TextureInfo* texture_info);
 static void write_texture_coords_for_particles(Vertex2d* texture_coord,
-                                               Particle* first, Particle* last,
+                                               ParticleIterator first, ParticleIterator end,
                                                TextureInfo* texture_info);
 
 static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in);
 static void write_colors_for_particles(Color_i* color,
-                                       Particle* first, Particle* last);
+                                       ParticleIterator first, ParticleIterator end);
 
 
 bool ParticleEmitter::initialized_fast_math = false;
@@ -42,7 +42,7 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     Particle zeroparticle;
     memset(&zeroparticle, 0, sizeof(Particle));
     particles.resize(max_particles, zeroparticle);
-    next_particle_index = 0;
+    next_particle = particles.begin();
     count = 0;
 
     // Pixel size of image.
@@ -168,12 +168,10 @@ void ParticleEmitter::update(const float delta)
 
     if(count > 0)
     {
-        Particle* particle = particles.data();
-        Particle* last = &particles[max_particles - 1];
-        for(; particle <= last; particle++)
+        for(Particle& particle:particles)
         {
             // Ignore particles that are already dead.
-            if(particle->time_to_live > 0)
+            if(particle.time_to_live > 0)
             {
                 update_particle(particle, delta);
             }
@@ -189,46 +187,46 @@ void ParticleEmitter::update_vbo()
     // Ensure that drawing order is correct by drawing in order of creation...
 
     // First, we draw all those from after the current, going up to the last one.
-    Particle* first = &particles[next_particle_index];
-    Particle* last = &particles[max_particles - 1];
+    auto first = next_particle;
+    auto end = particles.end();
     if(color_changes())
     {
         write_colors_for_particles(color_array.data(),
-                                   first, last);
+                                   first, end);
     }
     if(texture_changes())
     {
         write_texture_coords_for_particles(texture_coords_array.data(),
-                                           first, last,
+                                           first, end,
                                            &texture_info);
     }
     uint num_particles_written = write_vertices_for_particles(vertex_array.data(),
-                                                              first, last,
+                                                              first, end,
                                                               width, height);
 
     // When we copy the second half of the particles, we want to start writing further on.
     uint offset = num_particles_written * VERTICES_IN_PARTICLE;
 
     // Then go from the first to the current.
-    if(next_particle_index > 0)
+    if(next_particle != particles.begin())
     {
-        Particle* first = &particles[0];
-        Particle* last = &particles[next_particle_index - 1];
+        first = particles.begin();
+        end = next_particle;
         if(color_changes())
         {
             write_colors_for_particles(&color_array[offset],
-                                       first, last);
+                                       first, end);
         }
 
         if(texture_changes())
         {
             write_texture_coords_for_particles(&texture_coords_array[offset],
-                                               first, last,
+                                               first, end,
                                                &texture_info);
         }
 
         write_vertices_for_particles(&vertex_array[offset],
-                                     first, last,
+                                     first, end,
                                      width, height);
     }
 
@@ -260,36 +258,36 @@ ParticleEmitter::~ParticleEmitter()
     glDeleteBuffersARB(1, &vbo_id);
 }
 
-void ParticleEmitter::update_particle(Particle* particle, const float delta)
+void ParticleEmitter::update_particle(Particle& particle, const float delta)
 {
     // Apply friction
-    particle->velocity_x *= 1.0 - particle->friction * delta;
-    particle->velocity_y *= 1.0 - particle->friction * delta;
+    particle.velocity_x *= 1.0 - particle.friction * delta;
+    particle.velocity_y *= 1.0 - particle.friction * delta;
 
     // Gravity.
-    particle->velocity_y += /*gravity*/ 0.0 * delta;
+    particle.velocity_y += /*gravity*/ 0.0 * delta;
 
     // Move
-    particle->x += particle->velocity_x * delta;
-    particle->y += particle->velocity_y * delta;
+    particle.x += particle.velocity_x * delta;
+    particle.y += particle.velocity_y * delta;
 
     // Rotate.
-    particle->angle += particle->angular_velocity * delta;
+    particle.angle += particle.angular_velocity * delta;
 
     // Resize.
-    particle->scale += particle->zoom * delta;
+    particle.scale += particle.zoom * delta;
 
     // Fade out.
-    particle->color.alpha -= (particle->fade / 255.0) * delta;
+    particle.color.alpha -= (particle.fade / 255.0) * delta;
 
-    particle->time_to_live -= delta;
+    particle.time_to_live -= delta;
 
     // Die if out of time, invisible or shrunk to nothing.
-    if((particle->time_to_live <= 0) ||
-            (particle->color.alpha <= 0) ||
-            (particle->scale <= 0))
+    if((particle.time_to_live <= 0) ||
+            (particle.color.alpha <= 0) ||
+            (particle.scale <= 0))
     {
-        particle->time_to_live = 0;
+        particle.time_to_live = 0;
         count -= 1;
     }
 }
@@ -297,60 +295,58 @@ void ParticleEmitter::update_particle(Particle* particle, const float delta)
 void ParticleEmitter::emit(Particle p)
 {
     // Find the first dead particle in the heap, or overwrite the oldest one.
-    Particle* particle = &particles[next_particle_index];
+    Particle& particle = *next_particle;
 
     // If we are replacing an old one, remove it from the count and clear it to fresh.
-    if(particle->time_to_live > 0)
-    {
-        // Kill off and replace one with time to live :(
-        memset(particle, 0, sizeof(Particle));
-    }
-    else
+    if(particle.time_to_live <= 0)
     {
         count++; // Dead or never been used.
     }
 
     // Lets move the index onto the next one, or loop around.
-    next_particle_index = (next_particle_index + 1) % max_particles;
+    next_particle++;
+    if (next_particle == particles.end()) {
+        next_particle = particles.begin();
+    }
 
-    *particle = p;
+    particle = p;
 }
 
 
 // ----------------------------------------
-static Vertex2d* write_particle_vertices(Vertex2d* vertex, Particle* particle,
+static Vertex2d* write_particle_vertices(Vertex2d* vertex, Particle& particle,
                                          const uint width, const uint height)
 {
     // Totally ripped this code from Gosu :$
-    float sizeX = width * particle->scale;
-    float sizeY = height * particle->scale;
+    float sizeX = width * particle.scale;
+    float sizeY = height * particle.scale;
 
-    float offsX = fast_sin_deg(particle->angle);
-    float offsY = fast_cos_deg(particle->angle);
+    float offsX = fast_sin_deg(particle.angle);
+    float offsY = fast_cos_deg(particle.angle);
 
-    float distToLeftX   = +offsY * sizeX * particle->center_x;
-    float distToLeftY   = -offsX * sizeX * particle->center_x;
-    float distToRightX  = -offsY * sizeX * (1 - particle->center_x);
-    float distToRightY  = +offsX * sizeX * (1 - particle->center_x);
-    float distToTopX    = +offsX * sizeY * particle->center_y;
-    float distToTopY    = +offsY * sizeY * particle->center_y;
-    float distToBottomX = -offsX * sizeY * (1 - particle->center_y);
-    float distToBottomY = -offsY * sizeY * (1 - particle->center_y);
+    float distToLeftX   = +offsY * sizeX * particle.center_x;
+    float distToLeftY   = -offsX * sizeX * particle.center_x;
+    float distToRightX  = -offsY * sizeX * (1 - particle.center_x);
+    float distToRightY  = +offsX * sizeX * (1 - particle.center_x);
+    float distToTopX    = +offsX * sizeY * particle.center_y;
+    float distToTopY    = +offsY * sizeY * particle.center_y;
+    float distToBottomX = -offsX * sizeY * (1 - particle.center_y);
+    float distToBottomY = -offsY * sizeY * (1 - particle.center_y);
 
-    vertex->x = particle->x + distToLeftX  + distToTopX;
-    vertex->y = particle->y + distToLeftY  + distToTopY;
+    vertex->x = particle.x + distToLeftX  + distToTopX;
+    vertex->y = particle.y + distToLeftY  + distToTopY;
     vertex++;
 
-    vertex->x = particle->x + distToRightX + distToTopX;
-    vertex->y = particle->y + distToRightY + distToTopY;
+    vertex->x = particle.x + distToRightX + distToTopX;
+    vertex->y = particle.y + distToRightY + distToTopY;
     vertex++;
 
-    vertex->x = particle->x + distToRightX + distToBottomX;
-    vertex->y = particle->y + distToRightY + distToBottomY;
+    vertex->x = particle.x + distToRightX + distToBottomX;
+    vertex->y = particle.y + distToRightY + distToBottomY;
     vertex++;
 
-    vertex->x = particle->x + distToLeftX  + distToBottomX;
-    vertex->y = particle->y + distToLeftY  + distToBottomY;
+    vertex->x = particle.x + distToLeftX  + distToBottomX;
+    vertex->y = particle.y + distToLeftY  + distToBottomY;
     vertex++;
 
     return vertex;
@@ -359,14 +355,15 @@ static Vertex2d* write_particle_vertices(Vertex2d* vertex, Particle* particle,
 // ----------------------------------------
 // Calculate the vertices for all active particles
 static uint write_vertices_for_particles(Vertex2d *vertex,
-                                         Particle* first, Particle* last,
+                                         ParticleIterator first, ParticleIterator end,
                                          const uint width, const uint height)
 {
     int num_particles_written = 0;
 
-    for(Particle* particle = first; particle <= last; particle++)
+    for(;first != end; first++)
     {
-        if(particle->time_to_live > 0)
+        Particle& particle = *first;
+        if(particle.time_to_live > 0)
         {
             vertex = write_particle_vertices(vertex, particle, width, height);
             num_particles_written++;
@@ -402,12 +399,13 @@ static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
 // ----------------------------------------
 // Write out texture coords, assuming image is animated.
 static void write_texture_coords_for_particles(Vertex2d *texture_coord,
-                                               Particle* first, Particle* last,
+                                               ParticleIterator first, ParticleIterator end,
                                                TextureInfo * texture_info)
 {
-    for(Particle* particle = first; particle <= last; particle++)
+    for(;first != end; first++)
     {
-        if(particle->time_to_live > 0)
+        Particle& particle = *first;
+        if(particle.time_to_live > 0)
         {
             texture_coord = write_particle_texture_coords(texture_coord, texture_info);
         }
@@ -449,13 +447,14 @@ static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in)
 
 // ----------------------------------------
 static void write_colors_for_particles(Color_i *color,
-                                       Particle* first, Particle* last)
+                                       ParticleIterator first, ParticleIterator end)
 {
-    for(Particle* particle = first; particle <= last; particle++)
+    for(;first != end; first++)
     {
-        if(particle->time_to_live > 0)
+        Particle& particle = *first;
+        if(particle.time_to_live > 0)
         {
-            color = write_particle_colors(color, &particle->color);
+            color = write_particle_colors(color, &particle.color);
         }
     }
 }

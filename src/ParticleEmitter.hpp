@@ -65,6 +65,10 @@ typedef struct _tex_info
    float bottom;
 } TextureInfo;
 
+
+typedef std::vector<Particle> ParticleArray;
+typedef ParticleArray::iterator ParticleIterator;
+
 class ParticleEmitter
 {
     Gosu::Graphics& graphics;
@@ -74,7 +78,7 @@ class ParticleEmitter
     size_t height; // Height of image.
     TextureInfo texture_info; // Texture coords and id.
 
-    std::vector<Particle> particles;
+    ParticleArray particles;
 
     std::vector<Color_i> color_array; // Color array.
     size_t color_array_offset; // Offset to colours within VBO.
@@ -90,7 +94,7 @@ class ParticleEmitter
 
     size_t count; // Current number of active particles.
     size_t max_particles; // No more will be created if max hit.
-    size_t next_particle_index; // Next place to create a new particle (either dead or oldest living).
+    ParticleIterator next_particle; // Next place to create a new particle (either dead or oldest living).
 
     // do not copy
     ParticleEmitter(const ParticleEmitter&) = delete;
@@ -101,7 +105,7 @@ class ParticleEmitter
     bool color_changes() const;
     bool texture_changes() const;
     static bool initialized_fast_math;
-    void update_particle(Particle* p, const float delta);
+    void update_particle(Particle& p, const float delta);
     void write_texture_coords_for_all_particles();
 public:
     size_t getCount() const { return count; }
