@@ -20,11 +20,9 @@ void initialize_fast_math()
 
 float fast_sin_deg(float degrees)
 {
-    // Normalize to 0..360 (i.e. 0..2PI)
-    degrees = fmod(degrees, 360.0f);
-    if(degrees < 0.0f) degrees += 360.0f;
-
     int index = (int)(degrees * LOOKUPS_PER_DEGREE);
+    while (index < 0) index += NUM_LOOKUP_VALUES;
+    while (index > NUM_LOOKUP_VALUES) index -= NUM_LOOKUP_VALUES;
 
-    return sin_lookup[index % NUM_LOOKUP_VALUES];
+    return sin_lookup[index];
 }
