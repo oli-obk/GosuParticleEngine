@@ -69,11 +69,6 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
-bool ParticleEmitter::color_changes() const
-{
-    return true;
-}
-
 void ParticleEmitter::draw()
 {
     if(count == 0) return;
@@ -93,15 +88,8 @@ void ParticleEmitter::draw_vbo()
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
 
     // Only use colour array if colours are dynamic. Otherwise a single colour setting is enough.
-    if(color_changes())
-    {
         glEnableClientState(GL_COLOR_ARRAY);
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, (void*)color_array_offset);
-    }
-    else
-    {
-        //glColor4fv((GLfloat*)&color);
-    }
 
     // Always use the texture array, even if it is static.
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -113,7 +101,7 @@ void ParticleEmitter::draw_vbo()
 
     glDrawArrays(GL_QUADS, 0, count * VERTICES_IN_PARTICLE);
 
-    if(color_changes()) glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -189,11 +177,8 @@ void ParticleEmitter::update_vbo()
     // First, we draw all those from after the current, going up to the last one.
     auto first = next_particle;
     auto end = particles.end();
-    if(color_changes())
-    {
         write_colors_for_particles(color_array.data(),
                                    first, end);
-    }
     if(texture_changes())
     {
         write_texture_coords_for_particles(texture_coords_array.data(),
@@ -212,11 +197,8 @@ void ParticleEmitter::update_vbo()
     {
         first = particles.begin();
         end = next_particle;
-        if(color_changes())
-        {
             write_colors_for_particles(&color_array[offset],
                                        first, end);
-        }
 
         if(texture_changes())
         {
@@ -232,12 +214,9 @@ void ParticleEmitter::update_vbo()
 
     // Upload the data, but only as much as we are actually using.
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
-    if(color_changes())
-    {
         glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, color_array_offset,
                            sizeof(Color_i) * VERTICES_IN_PARTICLE * count,
                            color_array.data());
-    }
 
     if(texture_changes())
     {

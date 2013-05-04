@@ -102,7 +102,6 @@ class ParticleEmitter
     void init_vbo();
     void draw_vbo();
     void update_vbo();
-    bool color_changes() const;
     bool texture_changes() const;
     static bool initialized_fast_math;
     void update_particle(Particle& p, const float delta);
