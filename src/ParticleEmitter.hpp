@@ -15,12 +15,7 @@
 
 #include <cstdint>
 
-// Colour based on integer values (0..255)
-typedef struct _color_i
-{
-    uint8_t red, green, blue, alpha;
-} Color_i;
-
+static_assert(sizeof(Gosu::Color)==4, "Gosu::Color doesn't have 4 bytes");
 
 // Colour based on float values (0.0..1.0)
 typedef struct _color_f
@@ -70,7 +65,7 @@ typedef std::vector<Particle> ParticleArray;
 typedef ParticleArray::iterator ParticleIterator;
 typedef std::vector<Vertex2d> VertexArray;
 typedef VertexArray::iterator VertexIterator;
-typedef std::vector<Color_i> ColorArray;
+typedef std::vector<Gosu::Color> ColorArray;
 typedef ColorArray::iterator ColorIterator;
 
 class ParticleEmitter

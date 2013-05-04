@@ -121,13 +121,13 @@ void ParticleEmitter::init_vbo()
     color_array_offset = 0;
 
     texture_coords_array.resize(num_vertices);
-    texture_coords_array_offset = sizeof(Color_i) * num_vertices;
+    texture_coords_array_offset = sizeof(Gosu::Color) * num_vertices;
 
     vertex_array.resize(num_vertices);
-    vertex_array_offset = (sizeof(Color_i) + sizeof(Vertex2d)) * num_vertices;
+    vertex_array_offset = (sizeof(Gosu::Color) + sizeof(Vertex2d)) * num_vertices;
 
     // Create the VBO, but don't upload any data yet.
-    int data_size = (sizeof(Color_i) + sizeof(Vertex2d) + sizeof(Vertex2d)) * num_vertices;
+    int data_size = (sizeof(Gosu::Color) + sizeof(Vertex2d) + sizeof(Vertex2d)) * num_vertices;
     glGenBuffersARB(1, &vbo_id);
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
     glBufferDataARB(GL_ARRAY_BUFFER_ARB, data_size, NULL, GL_STREAM_DRAW_ARB);
@@ -218,7 +218,7 @@ void ParticleEmitter::update_vbo()
     // Upload the data, but only as much as we are actually using.
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
         glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, color_array_offset,
-                           sizeof(Color_i) * VERTICES_IN_PARTICLE * count,
+                           sizeof(Gosu::Color) * VERTICES_IN_PARTICLE * count,
                            color_array.data());
 
     if(texture_changes())
@@ -400,11 +400,10 @@ void ParticleEmitter::write_texture_coords_for_all_particles()
 static void write_particle_colors(ColorIterator& color_out, Color_f* color_in)
 {
     // Convert the color from float to int (1/4 the data size).
-    Color_i color;
-    color.red = color_in->red * 255;
-    color.green = color_in->green * 255;
-    color.blue = color_in->blue * 255;
-    color.alpha = color_in->alpha * 255;
+    Gosu::Color color(  color_in->alpha*255,
+                        color_in->red*255,
+                        color_in->green*255,
+                        color_in->blue*255);
 
     *color_out = color;
     color_out++;
