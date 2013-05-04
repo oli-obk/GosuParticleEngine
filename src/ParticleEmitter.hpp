@@ -68,6 +68,10 @@ typedef struct _tex_info
 
 typedef std::vector<Particle> ParticleArray;
 typedef ParticleArray::iterator ParticleIterator;
+typedef std::vector<Vertex2d> VertexArray;
+typedef VertexArray::iterator VertexIterator;
+typedef std::vector<Color_i> ColorArray;
+typedef ColorArray::iterator ColorIterator;
 
 class ParticleEmitter
 {
@@ -80,13 +84,13 @@ class ParticleEmitter
 
     ParticleArray particles;
 
-    std::vector<Color_i> color_array; // Color array.
+    ColorArray color_array; // Color array.
     size_t color_array_offset; // Offset to colours within VBO.
 
-    std::vector<Vertex2d> texture_coords_array; // Tex coord array.
+    VertexArray texture_coords_array; // Tex coord array.
     size_t texture_coords_array_offset; // Offset to texture coords within VBO.
 
-    std::vector<Vertex2d> vertex_array; // Vertex array.
+    VertexArray vertex_array; // Vertex array.
     size_t vertex_array_offset; // Offset to vertices within VBO.
 
     // VBO and client-side data arrays.

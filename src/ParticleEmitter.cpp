@@ -6,21 +6,21 @@
 #include <Gosu/Graphics.hpp>
 #include "fast_math.hpp"
 
-static Vertex2d* write_particle_vertices(Vertex2d* vertex,
+static void write_particle_vertices(VertexIterator& vertex,
                                          Particle& particle,
                                          const uint width, const uint height);
-static uint write_vertices_for_particles(Vertex2d* vertex,
+static void write_vertices_for_particles(VertexIterator& vertex,
                                          ParticleIterator first, ParticleIterator end,
                                          const uint width, const uint height);
 
-static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
+static void write_particle_texture_coords(VertexIterator& texture_coord,
                                                TextureInfo* texture_info);
-static void write_texture_coords_for_particles(Vertex2d* texture_coord,
+static void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end,
                                                TextureInfo* texture_info);
 
-static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in);
-static void write_colors_for_particles(Color_i* color,
+static void write_particle_colors(ColorIterator& color_out, Color_f* color_in);
+static void write_colors_for_particles(ColorIterator& color,
                                        ParticleIterator first, ParticleIterator end);
 
 
@@ -177,37 +177,40 @@ void ParticleEmitter::update_vbo()
     // First, we draw all those from after the current, going up to the last one.
     auto first = next_particle;
     auto end = particles.end();
-        write_colors_for_particles(color_array.data(),
+    ColorIterator color = color_array.begin();
+    VertexIterator texCoord = texture_coords_array.begin();
+    VertexIterator vertex = vertex_array.begin();
+    write_colors_for_particles(color,
                                    first, end);
     if(texture_changes())
     {
-        write_texture_coords_for_particles(texture_coords_array.data(),
+        write_texture_coords_for_particles(texCoord,
                                            first, end,
                                            &texture_info);
     }
-    uint num_particles_written = write_vertices_for_particles(vertex_array.data(),
+    write_vertices_for_particles(vertex,
                                                               first, end,
                                                               width, height);
 
     // When we copy the second half of the particles, we want to start writing further on.
-    uint offset = num_particles_written * VERTICES_IN_PARTICLE;
+    // therefore we keep the color, texCoord and vertex iterators
 
     // Then go from the first to the current.
     if(next_particle != particles.begin())
     {
         first = particles.begin();
         end = next_particle;
-            write_colors_for_particles(&color_array[offset],
+        write_colors_for_particles(color,
                                        first, end);
 
         if(texture_changes())
         {
-            write_texture_coords_for_particles(&texture_coords_array[offset],
+            write_texture_coords_for_particles(texCoord,
                                                first, end,
                                                &texture_info);
         }
 
-        write_vertices_for_particles(&vertex_array[offset],
+        write_vertices_for_particles(vertex,
                                      first, end,
                                      width, height);
     }
@@ -293,7 +296,7 @@ void ParticleEmitter::emit(Particle p)
 
 
 // ----------------------------------------
-static Vertex2d* write_particle_vertices(Vertex2d* vertex, Particle& particle,
+static void write_particle_vertices(VertexIterator& vertex, Particle& particle,
                                          const uint width, const uint height)
 {
     // Totally ripped this code from Gosu :$
@@ -327,33 +330,26 @@ static Vertex2d* write_particle_vertices(Vertex2d* vertex, Particle& particle,
     vertex->x = particle.x + distToLeftX  + distToBottomX;
     vertex->y = particle.y + distToLeftY  + distToBottomY;
     vertex++;
-
-    return vertex;
 }
 
 // ----------------------------------------
 // Calculate the vertices for all active particles
-static uint write_vertices_for_particles(Vertex2d *vertex,
+static void write_vertices_for_particles(VertexIterator& vertex,
                                          ParticleIterator first, ParticleIterator end,
                                          const uint width, const uint height)
 {
-    int num_particles_written = 0;
-
     for(;first != end; first++)
     {
         Particle& particle = *first;
         if(particle.time_to_live > 0)
         {
-            vertex = write_particle_vertices(vertex, particle, width, height);
-            num_particles_written++;
+            write_particle_vertices(vertex, particle, width, height);
         }
     }
-
-    return num_particles_written;
 }
 
 // ----------------------------------------
-static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
+static void write_particle_texture_coords(VertexIterator& texture_coord,
                                                TextureInfo* texture_info)
 {
     texture_coord->x = texture_info->left;
@@ -371,13 +367,11 @@ static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
     texture_coord->x = texture_info->left;
     texture_coord->y = texture_info->bottom;
     texture_coord++;
-
-    return texture_coord;
 }
 
 // ----------------------------------------
 // Write out texture coords, assuming image is animated.
-static void write_texture_coords_for_particles(Vertex2d *texture_coord,
+static void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end,
                                                TextureInfo * texture_info)
 {
@@ -386,7 +380,7 @@ static void write_texture_coords_for_particles(Vertex2d *texture_coord,
         Particle& particle = *first;
         if(particle.time_to_live > 0)
         {
-            texture_coord = write_particle_texture_coords(texture_coord, texture_info);
+            write_particle_texture_coords(texture_coord, texture_info);
         }
     }
 }
@@ -395,15 +389,15 @@ static void write_texture_coords_for_particles(Vertex2d *texture_coord,
 // Write all texture coords, assuming the image isn't animated.
 void ParticleEmitter::write_texture_coords_for_all_particles()
 {
-    auto texture_coord = texture_coords_array.data();
+    auto texture_coord = texture_coords_array.begin();
     for(uint i = 0; i < max_particles; i++)
     {
-        texture_coord = write_particle_texture_coords(texture_coord, &texture_info);
+        write_particle_texture_coords(texture_coord, &texture_info);
     }
 }
 
 // ----------------------------------------
-static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in)
+static void write_particle_colors(ColorIterator& color_out, Color_f* color_in)
 {
     // Convert the color from float to int (1/4 the data size).
     Color_i color;
@@ -420,12 +414,10 @@ static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in)
     color_out++;
     *color_out = color;
     color_out++;
-
-    return color_out;
 }
 
 // ----------------------------------------
-static void write_colors_for_particles(Color_i *color,
+static void write_colors_for_particles(ColorIterator& color,
                                        ParticleIterator first, ParticleIterator end)
 {
     for(;first != end; first++)
@@ -433,7 +425,7 @@ static void write_colors_for_particles(Color_i *color,
         Particle& particle = *first;
         if(particle.time_to_live > 0)
         {
-            color = write_particle_colors(color, &particle.color);
+            write_particle_colors(color, &particle.color);
         }
     }
 }
