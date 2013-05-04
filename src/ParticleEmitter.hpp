@@ -51,14 +51,6 @@ typedef struct _vertex2d
 {
     float x, y;
 } Vertex2d;
-typedef struct _tex_info
-{
-   uint id;
-   float left;
-   float right;
-   float top;
-   float bottom;
-} TextureInfo;
 
 
 typedef std::vector<Particle> ParticleArray;
@@ -75,7 +67,7 @@ class ParticleEmitter
     Gosu::ZPos z;
     size_t width; // Width of image.
     size_t height; // Height of image.
-    TextureInfo texture_info; // Texture coords and id.
+    Gosu::GLTexInfo texture_info; // Texture coords and id.
 
     ParticleArray particles;
 

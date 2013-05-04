@@ -14,10 +14,10 @@ static void write_vertices_for_particles(VertexIterator& vertex,
                                          const uint width, const uint height);
 
 static void write_particle_texture_coords(VertexIterator& texture_coord,
-                                               TextureInfo* texture_info);
+                                               Gosu::GLTexInfo texture_info);
 static void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end,
-                                               TextureInfo* texture_info);
+                                               Gosu::GLTexInfo texture_info);
 
 static void write_particle_colors(ColorIterator& color_out, Color_f* color_in);
 static void write_colors_for_particles(ColorIterator& color,
@@ -50,12 +50,7 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     height = image.height();
 
     // Fill the array with all the same coords (won't be used if the image changes dynamically).
-    const Gosu::GLTexInfo* tex_info = image.getData().glTexInfo();
-    texture_info.id     = tex_info->texName;
-    texture_info.left   = tex_info->left;
-    texture_info.right  = tex_info->right;
-    texture_info.top    = tex_info->top;
-    texture_info.bottom = tex_info->bottom;
+    texture_info = *image.getData().glTexInfo();
 
     write_texture_coords_for_all_particles();
 
@@ -83,7 +78,7 @@ void ParticleEmitter::draw_vbo()
 {
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture_info.id);
+    glBindTexture(GL_TEXTURE_2D, texture_info.texName);
 
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
 
@@ -186,7 +181,7 @@ void ParticleEmitter::update_vbo()
     {
         write_texture_coords_for_particles(texCoord,
                                            first, end,
-                                           &texture_info);
+                                           texture_info);
     }
     write_vertices_for_particles(vertex,
                                                               first, end,
@@ -207,7 +202,7 @@ void ParticleEmitter::update_vbo()
         {
             write_texture_coords_for_particles(texCoord,
                                                first, end,
-                                               &texture_info);
+                                               texture_info);
         }
 
         write_vertices_for_particles(vertex,
@@ -350,22 +345,22 @@ static void write_vertices_for_particles(VertexIterator& vertex,
 
 // ----------------------------------------
 static void write_particle_texture_coords(VertexIterator& texture_coord,
-                                               TextureInfo* texture_info)
+                                               Gosu::GLTexInfo texture_info)
 {
-    texture_coord->x = texture_info->left;
-    texture_coord->y = texture_info->top;
+    texture_coord->x = texture_info.left;
+    texture_coord->y = texture_info.top;
     texture_coord++;
 
-    texture_coord->x = texture_info->right;
-    texture_coord->y = texture_info->top;
+    texture_coord->x = texture_info.right;
+    texture_coord->y = texture_info.top;
     texture_coord++;
 
-    texture_coord->x = texture_info->right;
-    texture_coord->y = texture_info->bottom;
+    texture_coord->x = texture_info.right;
+    texture_coord->y = texture_info.bottom;
     texture_coord++;
 
-    texture_coord->x = texture_info->left;
-    texture_coord->y = texture_info->bottom;
+    texture_coord->x = texture_info.left;
+    texture_coord->y = texture_info.bottom;
     texture_coord++;
 }
 
@@ -373,7 +368,7 @@ static void write_particle_texture_coords(VertexIterator& texture_coord,
 // Write out texture coords, assuming image is animated.
 static void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end,
-                                               TextureInfo * texture_info)
+                                               Gosu::GLTexInfo texture_info)
 {
     for(;first != end; first++)
     {
@@ -392,7 +387,7 @@ void ParticleEmitter::write_texture_coords_for_all_particles()
     auto texture_coord = texture_coords_array.begin();
     for(uint i = 0; i < max_particles; i++)
     {
-        write_particle_texture_coords(texture_coord, &texture_info);
+        write_particle_texture_coords(texture_coord, texture_info);
     }
 }
 
