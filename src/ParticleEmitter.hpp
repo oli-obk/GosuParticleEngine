@@ -97,6 +97,10 @@ class ParticleEmitter
     static bool initialized_fast_math;
     void update_particle(Particle& p, const float delta);
     void write_texture_coords_for_all_particles();
+    void write_texture_coords_for_particles(VertexIterator& texture_coord,
+                                               ParticleIterator first, ParticleIterator end);
+    void write_vertices_for_particles(VertexIterator& vertex,
+                                         ParticleIterator first, ParticleIterator end);
 public:
     size_t getCount() const { return count; }
     ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles);

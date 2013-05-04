@@ -9,14 +9,8 @@
 static void write_particle_vertices(VertexIterator& vertex,
                                          Particle& particle,
                                          const uint width, const uint height);
-static void write_vertices_for_particles(VertexIterator& vertex,
-                                         ParticleIterator first, ParticleIterator end,
-                                         const uint width, const uint height);
 
 static void write_particle_texture_coords(VertexIterator& texture_coord,
-                                               Gosu::GLTexInfo texture_info);
-static void write_texture_coords_for_particles(VertexIterator& texture_coord,
-                                               ParticleIterator first, ParticleIterator end,
                                                Gosu::GLTexInfo texture_info);
 
 static void write_particle_colors(ColorIterator& color_out, Color_f* color_in);
@@ -180,12 +174,9 @@ void ParticleEmitter::update_vbo()
     if(texture_changes())
     {
         write_texture_coords_for_particles(texCoord,
-                                           first, end,
-                                           texture_info);
+                                           first, end);
     }
-    write_vertices_for_particles(vertex,
-                                                              first, end,
-                                                              width, height);
+    write_vertices_for_particles(vertex, first, end);
 
     // When we copy the second half of the particles, we want to start writing further on.
     // therefore we keep the color, texCoord and vertex iterators
@@ -201,13 +192,11 @@ void ParticleEmitter::update_vbo()
         if(texture_changes())
         {
             write_texture_coords_for_particles(texCoord,
-                                               first, end,
-                                               texture_info);
+                                               first, end);
         }
 
         write_vertices_for_particles(vertex,
-                                     first, end,
-                                     width, height);
+                                     first, end);
     }
 
     // Upload the data, but only as much as we are actually using.
@@ -329,9 +318,8 @@ static void write_particle_vertices(VertexIterator& vertex, Particle& particle,
 
 // ----------------------------------------
 // Calculate the vertices for all active particles
-static void write_vertices_for_particles(VertexIterator& vertex,
-                                         ParticleIterator first, ParticleIterator end,
-                                         const uint width, const uint height)
+void ParticleEmitter::write_vertices_for_particles(VertexIterator& vertex,
+                                         ParticleIterator first, ParticleIterator end)
 {
     for(;first != end; first++)
     {
@@ -366,9 +354,8 @@ static void write_particle_texture_coords(VertexIterator& texture_coord,
 
 // ----------------------------------------
 // Write out texture coords, assuming image is animated.
-static void write_texture_coords_for_particles(VertexIterator& texture_coord,
-                                               ParticleIterator first, ParticleIterator end,
-                                               Gosu::GLTexInfo texture_info)
+void ParticleEmitter::write_texture_coords_for_particles(VertexIterator& texture_coord,
+                                               ParticleIterator first, ParticleIterator end)
 {
     for(;first != end; first++)
     {
