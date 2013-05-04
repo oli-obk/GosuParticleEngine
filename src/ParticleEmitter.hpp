@@ -74,15 +74,15 @@ class ParticleEmitter
     size_t height; // Height of image.
     TextureInfo texture_info; // Texture coords and id.
 
-    Particle* particles;
+    std::vector<Particle> particles;
 
-    Color_i* color_array; // Color array.
+    std::vector<Color_i> color_array; // Color array.
     size_t color_array_offset; // Offset to colours within VBO.
 
-    Vertex2d* texture_coords_array; // Tex coord array.
+    std::vector<Vertex2d> texture_coords_array; // Tex coord array.
     size_t texture_coords_array_offset; // Offset to texture coords within VBO.
 
-    Vertex2d* vertex_array; // Vertex array.
+    std::vector<Vertex2d> vertex_array; // Vertex array.
     size_t vertex_array_offset; // Offset to vertices within VBO.
 
     // VBO and client-side data arrays.
@@ -102,6 +102,7 @@ class ParticleEmitter
     bool texture_changes() const;
     static bool initialized_fast_math;
     void update_particle(Particle* p, const float delta);
+    void write_texture_coords_for_all_particles();
 public:
     size_t getCount() const { return count; }
     ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles);

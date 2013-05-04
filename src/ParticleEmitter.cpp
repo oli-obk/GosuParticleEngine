@@ -18,9 +18,6 @@ static Vertex2d* write_particle_texture_coords(Vertex2d* texture_coord,
 static void write_texture_coords_for_particles(Vertex2d* texture_coord,
                                                Particle* first, Particle* last,
                                                TextureInfo* texture_info);
-static void write_texture_coords_for_all_particles(Vertex2d *texture_coord,
-                                                   TextureInfo* texture_info,
-                                                   const uint num_particles);
 
 static Color_i* write_particle_colors(Color_i* color_out, Color_f* color_in);
 static void write_colors_for_particles(Color_i* color,
@@ -42,8 +39,9 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
 
     init_vbo();
 
-    particles = new Particle[max_particles];
-    memset(particles, 0, max_particles * sizeof(Particle));
+    Particle zeroparticle;
+    memset(&zeroparticle, 0, sizeof(Particle));
+    particles.resize(max_particles, zeroparticle);
     next_particle_index = 0;
     count = 0;
 
@@ -59,16 +57,14 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     texture_info.top    = tex_info->top;
     texture_info.bottom = tex_info->bottom;
 
-    write_texture_coords_for_all_particles(texture_coords_array,
-                                           &texture_info,
-                                           max_particles);
+    write_texture_coords_for_all_particles();
 
     // Push whole array to graphics card.
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
 
     glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, texture_coords_array_offset,
                        sizeof(Vertex2d) * VERTICES_IN_PARTICLE * max_particles,
-                       texture_coords_array);
+                       texture_coords_array.data());
 
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
@@ -133,13 +129,13 @@ void ParticleEmitter::init_vbo()
 
     int num_vertices = max_particles * VERTICES_IN_PARTICLE;
 
-    color_array = new Color_i[num_vertices];
+    color_array.resize(num_vertices);
     color_array_offset = 0;
 
-    texture_coords_array = new Vertex2d[num_vertices];
+    texture_coords_array.resize(num_vertices);
     texture_coords_array_offset = sizeof(Color_i) * num_vertices;
 
-    vertex_array = new Vertex2d[num_vertices];
+    vertex_array.resize(num_vertices);
     vertex_array_offset = (sizeof(Color_i) + sizeof(Vertex2d)) * num_vertices;
 
     // Create the VBO, but don't upload any data yet.
@@ -172,7 +168,7 @@ void ParticleEmitter::update(const float delta)
 
     if(count > 0)
     {
-        Particle* particle = particles;
+        Particle* particle = particles.data();
         Particle* last = &particles[max_particles - 1];
         for(; particle <= last; particle++)
         {
@@ -197,16 +193,16 @@ void ParticleEmitter::update_vbo()
     Particle* last = &particles[max_particles - 1];
     if(color_changes())
     {
-        write_colors_for_particles(color_array,
+        write_colors_for_particles(color_array.data(),
                                    first, last);
     }
     if(texture_changes())
     {
-        write_texture_coords_for_particles(texture_coords_array,
+        write_texture_coords_for_particles(texture_coords_array.data(),
                                            first, last,
                                            &texture_info);
     }
-    uint num_particles_written = write_vertices_for_particles(vertex_array,
+    uint num_particles_written = write_vertices_for_particles(vertex_array.data(),
                                                               first, last,
                                                               width, height);
 
@@ -242,19 +238,19 @@ void ParticleEmitter::update_vbo()
     {
         glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, color_array_offset,
                            sizeof(Color_i) * VERTICES_IN_PARTICLE * count,
-                           color_array);
+                           color_array.data());
     }
 
     if(texture_changes())
     {
         glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, texture_coords_array_offset,
                            sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
-                           texture_coords_array);
+                           texture_coords_array.data());
     }
 
     glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, vertex_array_offset,
                        sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
-                       vertex_array);
+                       vertex_array.data());
 
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
@@ -420,13 +416,12 @@ static void write_texture_coords_for_particles(Vertex2d *texture_coord,
 
 // ----------------------------------------
 // Write all texture coords, assuming the image isn't animated.
-static void write_texture_coords_for_all_particles(Vertex2d *texture_coord,
-                                                   TextureInfo * texture_info,
-                                                   const uint num_particles)
+void ParticleEmitter::write_texture_coords_for_all_particles()
 {
-    for(uint i = 0; i < num_particles; i++)
+    auto texture_coord = texture_coords_array.data();
+    for(uint i = 0; i < max_particles; i++)
     {
-        texture_coord = write_particle_texture_coords(texture_coord, texture_info);
+        texture_coord = write_particle_texture_coords(texture_coord, &texture_info);
     }
 }
 
