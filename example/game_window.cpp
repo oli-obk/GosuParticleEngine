@@ -51,10 +51,7 @@ void GameWindow::update()
         p.y = input().mouseY();
         p.time_to_live = 1000;
         p.scale = 0.1;
-        p.color.alpha = 1.0;
-        p.color.red = 0.0;
-        p.color.blue = 1.0;
-        p.color.green = 0.5;
+        p.color = Gosu::Color::AQUA;
         p.velocity_x = Gosu::random(-1, 1)*10;
         p.velocity_y = Gosu::random(-1, 1)*10;
         p.fade = 10;

@@ -14,10 +14,19 @@
 static_assert(sizeof(Gosu::Color)==4, "Gosu::Color doesn't have 4 bytes");
 
 // Colour based on float values (0.0..1.0)
-typedef struct _color_f
+struct Color_f
 {
     float red, green, blue, alpha;
-} Color_f;
+    // default is white fully visible
+    Color_f():red(1),green(1),blue(1),alpha(1) {}
+    Color_f(Gosu::Color c)
+    {
+        red = float(c.red())/255.0;
+        green = float(c.green())/255.0;
+        blue = float(c.blue())/255.0;
+        alpha = float(c.alpha())/255.0;
+    }
+};
 
 
 #define VERTICES_IN_PARTICLE 4
