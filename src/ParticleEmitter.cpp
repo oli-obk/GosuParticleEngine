@@ -20,11 +20,12 @@ static void write_colors_for_particles(ColorIterator& color,
 
 bool ParticleEmitter::initialized_fast_math = false;
 
-ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles)
+ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles, const float delta)
 :graphics(graphics)
 ,image(graphics, filename)
 ,z(z)
 ,max_particles(max_particles)
+,delta(delta)
 {
     if (!initialized_fast_math) {
         initialize_fast_math();
@@ -136,7 +137,7 @@ bool ParticleEmitter::texture_changes() const
     return false;
 }
 
-void ParticleEmitter::update(const float delta)
+void ParticleEmitter::update()
 {
     if(delta < 0.0) {
         throw std::runtime_error("delta must be >= 0");
@@ -149,7 +150,7 @@ void ParticleEmitter::update(const float delta)
             // Ignore particles that are already dead.
             if(particle.time_to_live > 0)
             {
-                particle.update(delta);
+                particle.update();
                 if(particle.time_to_live <= 0) {
                     count -= 1;
                 }
@@ -226,29 +227,29 @@ ParticleEmitter::~ParticleEmitter()
     glDeleteBuffersARB(1, &vbo_id);
 }
 
-void Particle::update(const float delta)
+void Particle::update()
 {
     // Apply friction
-    velocity_x *= 1.0 - friction * delta;
-    velocity_y *= 1.0 - friction * delta;
+    velocity_x *= 1.0 - friction;
+    velocity_y *= 1.0 - friction;
 
     // Gravity.
-    velocity_y += /*gravity*/ 0.0 * delta;
+    velocity_y += /*gravity*/ 0.0;
 
     // Move
-    x += velocity_x * delta;
-    y += velocity_y * delta;
+    x += velocity_x;
+    y += velocity_y;
 
     // Rotate.
-    angle += angular_velocity * delta;
+    angle += angular_velocity;
 
     // Resize.
-    scale += zoom * delta;
+    scale += zoom;
 
     // Fade out.
-    color.alpha -= (fade / 255.0) * delta;
+    color.alpha -= (fade / 255.0);
 
-    time_to_live -= delta;
+    time_to_live--;
 
     // Die if out of time, invisible or shrunk to nothing.
     if((time_to_live <= 0) ||
@@ -257,6 +258,19 @@ void Particle::update(const float delta)
     {
         time_to_live = 0;
     }
+}
+
+Particle Particle::withDelta(const float delta)
+{
+    Particle p = *this;
+    p.angular_velocity *= delta;
+    p.fade *= delta;
+    p.friction *= delta;
+    p.time_to_live /= delta;
+    p.velocity_x *= delta;
+    p.velocity_y *= delta;
+    p.zoom *= delta;
+    return p;
 }
 
 void ParticleEmitter::emit(Particle p)
@@ -276,7 +290,7 @@ void ParticleEmitter::emit(Particle p)
         next_particle = particles.begin();
     }
 
-    particle = p;
+    particle = p.withDelta(delta);
 }
 
 

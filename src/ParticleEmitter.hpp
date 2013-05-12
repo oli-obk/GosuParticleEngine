@@ -77,7 +77,9 @@ struct Particle
         time_to_live = 0.0;
     }
 
-    void update(float delta);
+    void update();
+
+    Particle withDelta(const float delta);
 };
 
 
@@ -134,12 +136,13 @@ class ParticleEmitter
                                                ParticleIterator first, ParticleIterator end);
     void write_vertices_for_particles(VertexIterator& vertex,
                                          ParticleIterator first, ParticleIterator end);
+    const float delta;
 public:
     size_t getCount() const { return count; }
-    ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles);
+    ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles, const float delta);
     ~ParticleEmitter();
     void emit(Particle p);
-    void update(const float delta);
+    void update();
     void draw();
 };
 
