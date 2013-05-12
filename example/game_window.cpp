@@ -50,8 +50,6 @@ void GameWindow::update()
         p.x = input().mouseX();
         p.y = input().mouseY();
         p.time_to_live = 1000;
-        p.center_x = 0.5;
-        p.center_y = 0.5;
         p.scale = 0.1;
         p.color.alpha = 1.0;
         p.color.red = 0.0;
@@ -59,10 +57,6 @@ void GameWindow::update()
         p.color.green = 0.5;
         p.velocity_x = Gosu::random(-1, 1)*10;
         p.velocity_y = Gosu::random(-1, 1)*10;
-        p.friction = 0.0;
-        p.angle = 0.0;
-        p.angular_velocity = 0.0;
-        p.zoom = 0.0;
         p.fade = 10;
         particle_emitter.emit(p);
     }
