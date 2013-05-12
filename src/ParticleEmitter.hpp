@@ -36,17 +36,26 @@ struct Particle
 {
     // State.
     float x, y;
+    // 0.0 draws left/upper corner of image at x,y
+    // 1.0 draws right/lower corner of image at x,y
+    // default is 0.5
     float center_x, center_y;
+    // change of position per second
     float velocity_x, velocity_y;
+    // change of angle per second
     float angular_velocity;
 
     Color_f color;
 
-    // Rate of change
+    // image alpha decreases by fade per second
     float fade;
+    // size of image at start
     float scale;
+    // scale increases by zoom per second
     float zoom;
+    // percentage by which velocity is decreased per second
     float friction;
+    // angle the image is drawn at in gosu degrees
     float angle;
 
     // Time to die.
