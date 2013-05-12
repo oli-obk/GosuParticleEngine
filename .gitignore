@@ -1,0 +1,5 @@
+/build/*
+/GosuParticleEmitter.workspace*
+/GosuParticleEmitter.tags
+/example/ParticleExample
+/example/example.project
