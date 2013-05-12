@@ -33,9 +33,8 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
 
     init_vbo();
 
-    Particle zeroparticle;
-    memset(&zeroparticle, 0, sizeof(Particle));
-    particles.resize(max_particles, zeroparticle);
+    // default Particle constructor is just fine
+    particles.resize(max_particles);
     next_particle = particles.begin();
     count = 0;
 
@@ -150,7 +149,10 @@ void ParticleEmitter::update(const float delta)
             // Ignore particles that are already dead.
             if(particle.time_to_live > 0)
             {
-                update_particle(particle, delta);
+                particle.update(delta);
+                if(particle.time_to_live <= 0) {
+                    count -= 1;
+                }
             }
         }
     }
@@ -224,37 +226,36 @@ ParticleEmitter::~ParticleEmitter()
     glDeleteBuffersARB(1, &vbo_id);
 }
 
-void ParticleEmitter::update_particle(Particle& particle, const float delta)
+void Particle::update(const float delta)
 {
     // Apply friction
-    particle.velocity_x *= 1.0 - particle.friction * delta;
-    particle.velocity_y *= 1.0 - particle.friction * delta;
+    velocity_x *= 1.0 - friction * delta;
+    velocity_y *= 1.0 - friction * delta;
 
     // Gravity.
-    particle.velocity_y += /*gravity*/ 0.0 * delta;
+    velocity_y += /*gravity*/ 0.0 * delta;
 
     // Move
-    particle.x += particle.velocity_x * delta;
-    particle.y += particle.velocity_y * delta;
+    x += velocity_x * delta;
+    y += velocity_y * delta;
 
     // Rotate.
-    particle.angle += particle.angular_velocity * delta;
+    angle += angular_velocity * delta;
 
     // Resize.
-    particle.scale += particle.zoom * delta;
+    scale += zoom * delta;
 
     // Fade out.
-    particle.color.alpha -= (particle.fade / 255.0) * delta;
+    color.alpha -= (fade / 255.0) * delta;
 
-    particle.time_to_live -= delta;
+    time_to_live -= delta;
 
     // Die if out of time, invisible or shrunk to nothing.
-    if((particle.time_to_live <= 0) ||
-            (particle.color.alpha <= 0) ||
-            (particle.scale <= 0))
+    if((time_to_live <= 0) ||
+            (color.alpha <= 0) ||
+            (scale <= 0))
     {
-        particle.time_to_live = 0;
-        count -= 1;
+        time_to_live = 0;
     }
 }
 

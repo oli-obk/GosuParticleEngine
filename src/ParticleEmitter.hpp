@@ -23,7 +23,7 @@ typedef struct _color_f
 #define VERTICES_IN_PARTICLE 4
 
 // A single particle.
-typedef struct _particle
+struct Particle
 {
     // State.
     float x, y;
@@ -42,7 +42,27 @@ typedef struct _particle
 
     // Time to die.
     float time_to_live;
-} Particle;
+
+    Particle()
+    {
+        x = y = 0;
+        center_x = center_y = 0.5;
+        velocity_x = velocity_y = 0;
+        angular_velocity = 0;
+        color.alpha = 1.0;
+        color.blue = color.red = color.green = 1.0;
+        fade = 0.0;
+        scale = 1.0;
+        zoom = 0.0;
+        friction = 0.0;
+        angle = 0.0;
+        time_to_live = 0.0;
+    }
+
+    void update(float delta);
+};
+
+
 typedef struct _vertex2d
 {
     float x, y;
@@ -91,7 +111,6 @@ class ParticleEmitter
     void update_vbo();
     bool texture_changes() const;
     static bool initialized_fast_math;
-    void update_particle(Particle& p, const float delta);
     void write_texture_coords_for_all_particles();
     void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end);
