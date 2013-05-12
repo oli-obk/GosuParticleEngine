@@ -3,17 +3,13 @@
 
 // this file was created by porting Spooner's ashton's particle emitter code to c++
 
-#include <map>
 #include <string>
 #include <Gosu/Fwd.hpp>
 #include <Gosu/Color.hpp>
 #include <array>
 #include <cstdint>
 #include <Gosu/Image.hpp>
-#include <Gosu/Math.hpp>
-#include <ImageData.hpp>
-
-#include <cstdint>
+#include <Gosu/ImageData.hpp>
 
 static_assert(sizeof(Gosu::Color)==4, "Gosu::Color doesn't have 4 bytes");
 
