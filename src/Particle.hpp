@@ -15,6 +15,14 @@ struct Color_f
         blue = float(c.blue())/255.0;
         alpha = float(c.alpha())/255.0;
     }
+    operator Gosu::Color() const
+    {
+        return Gosu::Color(alpha * 255,
+                            red   * 255,
+                            green * 255,
+                            blue  * 255
+            );
+    }
 };
 
 // A single particle.

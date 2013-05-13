@@ -13,7 +13,7 @@ static void write_particle_vertices(VertexIterator& vertex,
 static void write_particle_texture_coords(VertexIterator& texture_coord,
                                                Gosu::GLTexInfo texture_info);
 
-static void write_particle_colors(ColorIterator& color_out, Color_f* color_in);
+static void write_particle_colors(ColorIterator& color_out, Color_f& color_in);
 static void write_colors_for_particles(ColorIterator& color,
                                        ParticleIterator first, ParticleIterator end);
 
@@ -348,14 +348,8 @@ void ParticleEmitter::write_texture_coords_for_all_particles()
 }
 
 // ----------------------------------------
-static void write_particle_colors(ColorIterator& color_out, Color_f* color_in)
+static void write_particle_colors(ColorIterator& color_out, Color_f& color)
 {
-    // Convert the color from float to int (1/4 the data size).
-    Gosu::Color color(  color_in->alpha*255,
-                        color_in->red*255,
-                        color_in->green*255,
-                        color_in->blue*255);
-
     *color_out = color;
     color_out++;
     *color_out = color;
@@ -375,7 +369,7 @@ static void write_colors_for_particles(ColorIterator& color,
         Particle& particle = *first;
         if(particle.time_to_live > 0)
         {
-            write_particle_colors(color, &particle.color);
+            write_particle_colors(color, particle.color);
         }
     }
 }
