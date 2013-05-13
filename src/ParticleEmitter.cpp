@@ -1,4 +1,5 @@
 #include "ParticleEmitter.hpp"
+#include <stdexcept>
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
@@ -140,8 +141,9 @@ void ParticleEmitter::update()
 {
     if(count > 0)
     {
-        for(Particle& particle:particles)
+        for(ParticleIterator it = particles.begin(); it != particles.end(); it++)
         {
+            Particle& particle = *it;
             // Ignore particles that are already dead.
             if(particle.time_to_live > 0)
             {
@@ -162,8 +164,8 @@ void ParticleEmitter::update_vbo()
     // Ensure that drawing order is correct by drawing in order of creation...
 
     // First, we draw all those from after the current, going up to the last one.
-    auto first = next_particle;
-    auto end = particles.end();
+    ParticleIterator first = next_particle;
+    ParticleIterator end = particles.end();
     ColorIterator color = color_array.begin();
     VertexIterator texCoord = texture_coords_array.begin();
     VertexIterator vertex = vertex_array.begin();
@@ -335,7 +337,7 @@ void ParticleEmitter::write_texture_coords_for_particles(VertexIterator& texture
 // Write all texture coords, assuming the image isn't animated.
 void ParticleEmitter::write_texture_coords_for_all_particles()
 {
-    auto texture_coord = texture_coords_array.begin();
+    VertexIterator texture_coord = texture_coords_array.begin();
     for(uint i = 0; i < max_particles; i++)
     {
         write_particle_texture_coords(texture_coord, texture_info);

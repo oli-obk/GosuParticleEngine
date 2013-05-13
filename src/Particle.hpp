@@ -1,6 +1,6 @@
 #include <Gosu/Color.hpp>
 
-static_assert(sizeof(Gosu::Color)==4, "Gosu::Color doesn't have 4 bytes");
+//static_assert(sizeof(Gosu::Color)==4, "Gosu::Color doesn't have 4 bytes");
 
 // Colour based on float values (0.0..1.0)
 struct Color_f
@@ -60,10 +60,16 @@ struct Particle
     Particle TimeToLive(uint16_t frames) const;
 
     Particle()
-    :Particle(0, 0)
-    {}
+    {
+        init(0, 0);
+    }
 
     Particle(float _x, float _y)
+    {
+        init(_x, _y);
+    }
+
+    void init(float _x, float _y)
     {
         x = _x;
         y = _y;

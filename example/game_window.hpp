@@ -8,10 +8,13 @@
 #include <map>
 #include "ParticleEmitter.hpp"
 
-enum RenderLayer
+class RenderLayer
 {
+public:
+    enum RenderLayerDummy {
     Particles,
     GUI
+    };
 };
 
 class GameWindow : public Gosu::Window

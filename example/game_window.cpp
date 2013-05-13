@@ -44,7 +44,7 @@ void GameWindow::draw()
 
 void GameWindow::update()
 {
-    auto start_time = Gosu::milliseconds();
+    double start_time = Gosu::milliseconds();
     if (input().down(Gosu::msRight)) {
         for(int i = 0; i < 1000; i++) {
             Particle p(input().mouseX(), input().mouseY());

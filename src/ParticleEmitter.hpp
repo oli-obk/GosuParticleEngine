@@ -6,8 +6,8 @@
 #include <string>
 #include <Gosu/Fwd.hpp>
 #include <Gosu/Color.hpp>
-#include <array>
-#include <cstdint>
+#include <vector>
+#include <stdint.h>
 #include <Gosu/Image.hpp>
 #include <Gosu/ImageData.hpp>
 #include "Particle.hpp"
@@ -55,8 +55,8 @@ class ParticleEmitter
     ParticleIterator next_particle; // Next place to create a new particle (either dead or oldest living).
 
     // do not copy
-    ParticleEmitter(const ParticleEmitter&) = delete;
-    ParticleEmitter& operator=(const ParticleEmitter&) = delete;
+    ParticleEmitter(const ParticleEmitter&);
+    ParticleEmitter& operator=(const ParticleEmitter&);
     void init_vbo();
     void draw_vbo();
     void update_vbo();

@@ -1,7 +1,7 @@
 #include "Particle.hpp"
 #include "fast_math.hpp"
 
-static_assert(std::numeric_limits<decltype(Particle::angle)>::max() > NUM_LOOKUP_VALUES*2, "Particle::angle doesn't have enough bits for the lookup table and safe rotations");
+//static_assert(std::numeric_limits<decltype(Particle::angle)>::max() > NUM_LOOKUP_VALUES*2, "Particle::angle doesn't have enough bits for the lookup table and safe rotations");
 
 void Particle::update()
 {
