@@ -14,7 +14,7 @@
 GameWindow::GameWindow()
 :Gosu::Window(1200, 800, false)
 ,font(graphics(), Gosu::defaultFontName(), 20)
-,particle_emitter(graphics(), L"particle_arrow.png", RenderLayer::Particles, 150000, 1.0/60.0)
+,particle_emitter(graphics(), L"particle_arrow.png", RenderLayer::Particles, 150000)
 {
 }
 
@@ -50,9 +50,9 @@ void GameWindow::update()
             Particle p(input().mouseX(), input().mouseY());
             p.scale = 0.1;
             p.color = Gosu::Color::AQUA;
-            p.velocity_x = Gosu::random(-1, 1)*10;
-            p.velocity_y = Gosu::random(-1, 1)*10;
-            p.fade = 10;
+            p.velocity_x = Gosu::random(-1, 1)/6;
+            p.velocity_y = Gosu::random(-1, 1)/6;
+            p.fade = 0.3;
             particle_emitter.emit(p.TimeToLive(1000));
         }
     }
@@ -65,6 +65,6 @@ void GameWindow::buttonUp(Gosu::Button btn)
     if (btn == Gosu::msLeft) {
         Particle p(input().mouseX(), input().mouseY());
         p.fade = 10;
-        particle_emitter.emit(p.TimeToLive(100).AngularVelocity(10));
+        particle_emitter.emit(p.TimeToLive(300).AngularVelocity(10));
     }
 }

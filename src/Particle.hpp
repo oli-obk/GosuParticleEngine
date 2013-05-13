@@ -34,20 +34,20 @@ struct Particle
     // 1.0 draws right/lower corner of image at x,y
     // default is 0.5
     float center_x, center_y;
-    // change of position per second
+    // change of position per frame
     float velocity_x, velocity_y;
     // change of angle per frame
     uint16_t angular_velocity;
 
     Color_f color;
 
-    // image alpha decreases by fade per second
+    // image alpha decreases by fade per frame
     float fade;
     // size of image at start
     float scale;
-    // scale increases by zoom per second
+    // scale increases by zoom per frame
     float zoom;
-    // percentage by which velocity is decreased per second
+    // percentage by which velocity is decreased per frame
     float friction;
     // angle the image is drawn at in fast_math indice steps
     uint16_t angle;
@@ -56,7 +56,7 @@ struct Particle
     uint16_t time_to_live;
 
     Particle Angle(float gosu_degrees) const;
-    Particle AngularVelocity(float gosu_degrees_per_second) const;
+    Particle AngularVelocity(float gosu_degrees_per_frame) const;
     Particle TimeToLive(uint16_t frames) const;
 
     Particle()
@@ -81,6 +81,4 @@ struct Particle
     }
 
     void update();
-
-    Particle withDelta(const float delta);
 };

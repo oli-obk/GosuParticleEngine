@@ -38,17 +38,6 @@ void Particle::update()
     }
 }
 
-Particle Particle::withDelta(const float delta)
-{
-    Particle p = *this;
-    p.fade *= delta;
-    p.friction *= delta;
-    p.velocity_x *= delta;
-    p.velocity_y *= delta;
-    p.zoom *= delta;
-    return p;
-}
-
 Particle Particle::Angle(float gosu_degrees) const
 {
     Particle p = *this;

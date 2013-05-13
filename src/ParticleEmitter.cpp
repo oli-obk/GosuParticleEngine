@@ -20,12 +20,11 @@ static void write_colors_for_particles(ColorIterator& color,
 
 bool ParticleEmitter::initialized_fast_math = false;
 
-ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles, const float delta)
+ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename, Gosu::ZPos z, size_t max_particles)
 :graphics(graphics)
 ,image(graphics, filename)
 ,z(z)
 ,max_particles(max_particles)
-,delta(delta)
 {
     if (!initialized_fast_math) {
         initialize_fast_math();
@@ -139,10 +138,6 @@ bool ParticleEmitter::texture_changes() const
 
 void ParticleEmitter::update()
 {
-    if(delta < 0.0) {
-        throw std::runtime_error("delta must be >= 0");
-    }
-
     if(count > 0)
     {
         for(Particle& particle:particles)
@@ -244,7 +239,7 @@ void ParticleEmitter::emit(Particle p)
         next_particle = particles.begin();
     }
 
-    particle = p.withDelta(delta);
+    particle = p;
 }
 
 
