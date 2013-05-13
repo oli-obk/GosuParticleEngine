@@ -47,16 +47,13 @@ void GameWindow::update()
     auto start_time = Gosu::milliseconds();
     if (input().down(Gosu::msRight)) {
         for(int i = 0; i < 1000; i++) {
-            Particle p;
-            p.x = input().mouseX();
-            p.y = input().mouseY();
-            p.time_to_live = 1000;
+            Particle p(input().mouseX(), input().mouseY());
             p.scale = 0.1;
             p.color = Gosu::Color::AQUA;
             p.velocity_x = Gosu::random(-1, 1)*10;
             p.velocity_y = Gosu::random(-1, 1)*10;
             p.fade = 10;
-            particle_emitter.emit(p);
+            particle_emitter.emit(p.TimeToLive(1000));
         }
     }
     particle_emitter.update();
@@ -66,13 +63,8 @@ void GameWindow::update()
 void GameWindow::buttonUp(Gosu::Button btn)
 {
     if (btn == Gosu::msLeft) {
-        Particle p;
-        p.x = input().mouseX();
-        p.y = input().mouseY();
-        p.time_to_live = 100;
+        Particle p(input().mouseX(), input().mouseY());
         p.fade = 10;
-        p.angular_velocity = 600;
-        p.Angle(0);
-        particle_emitter.emit(p);
+        particle_emitter.emit(p.TimeToLive(100).AngularVelocity(10));
     }
 }

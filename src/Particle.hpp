@@ -52,8 +52,13 @@ struct Particle
     Particle TimeToLive(uint16_t frames) const;
 
     Particle()
+    :Particle(0, 0)
+    {}
+
+    Particle(float _x, float _y)
     {
-        x = y = 0;
+        x = _x;
+        y = _y;
         center_x = center_y = 0.5;
         velocity_x = velocity_y = 0;
         angular_velocity = 0;
