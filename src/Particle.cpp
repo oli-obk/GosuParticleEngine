@@ -31,8 +31,7 @@ void Particle::update()
     time_to_live--;
 
     // Die if out of time, invisible or shrunk to nothing.
-    if((time_to_live <= 0) ||
-            (color.alpha <= 0) ||
+    if((color.alpha <= 0) ||
             (scale <= 0))
     {
         time_to_live = 0;
@@ -44,7 +43,6 @@ Particle Particle::withDelta(const float delta)
     Particle p = *this;
     p.fade *= delta;
     p.friction *= delta;
-    p.time_to_live /= delta;
     p.velocity_x *= delta;
     p.velocity_y *= delta;
     p.zoom *= delta;
@@ -70,5 +68,12 @@ Particle Particle::AngularVelocity(float gosu_degrees_per_second) const
     }
     Particle p = *this;
     p.angular_velocity = r;
+    return p;
+}
+
+Particle Particle::TimeToLive(uint16_t frames) const
+{
+    Particle p = *this;
+    p.time_to_live = frames;
     return p;
 }

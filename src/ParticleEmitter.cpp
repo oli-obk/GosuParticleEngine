@@ -151,7 +151,7 @@ void ParticleEmitter::update()
             if(particle.time_to_live > 0)
             {
                 particle.update();
-                if(particle.time_to_live <= 0) {
+                if(particle.time_to_live == 0) {
                     count -= 1;
                 }
             }
@@ -233,7 +233,7 @@ void ParticleEmitter::emit(Particle p)
     Particle& particle = *next_particle;
 
     // If we are replacing an old one, remove it from the count and clear it to fresh.
-    if(particle.time_to_live <= 0)
+    if(particle.time_to_live == 0)
     {
         count++; // Dead or never been used.
     }

@@ -45,10 +45,11 @@ struct Particle
     uint16_t angle;
 
     // Time to die.
-    float time_to_live;
+    uint16_t time_to_live;
 
     Particle Angle(float gosu_degrees) const;
     Particle AngularVelocity(float gosu_degrees_per_second) const;
+    Particle TimeToLive(uint16_t frames) const;
 
     Particle()
     {
