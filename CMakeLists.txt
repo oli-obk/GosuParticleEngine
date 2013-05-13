@@ -9,6 +9,8 @@ SET(SRC_FILES
 	example/game_window.hpp
     src/ParticleEmitter.cpp
     src/ParticleEmitter.hpp
+    src/Particle.cpp
+    src/Particle.hpp
     src/fast_math.cpp
     src/fast_math.hpp
 	)
