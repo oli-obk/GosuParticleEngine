@@ -1,4 +1,7 @@
 #include "Particle.hpp"
+#include "fast_math.hpp"
+
+static_assert(std::numeric_limits<decltype(Particle::angle)>::max() > NUM_LOOKUP_VALUES*2, "Particle::angle doesn't have enough bits for the lookup table and safe rotations");
 
 void Particle::update()
 {
@@ -15,6 +18,9 @@ void Particle::update()
 
     // Rotate.
     angle += angular_velocity;
+    if (angle >= LOOKUPS_PER_CIRCLE) {
+        angle -= LOOKUPS_PER_CIRCLE;
+    }
 
     // Resize.
     scale += zoom;
@@ -36,12 +42,33 @@ void Particle::update()
 Particle Particle::withDelta(const float delta)
 {
     Particle p = *this;
-    p.angular_velocity *= delta;
     p.fade *= delta;
     p.friction *= delta;
     p.time_to_live /= delta;
     p.velocity_x *= delta;
     p.velocity_y *= delta;
     p.zoom *= delta;
+    return p;
+}
+
+Particle Particle::Angle(float gosu_degrees) const
+{
+    Particle p = *this;
+    p.angle = gosu_degrees * LOOKUPS_PER_DEGREE;
+    return p;
+}
+
+Particle Particle::AngularVelocity(float gosu_degrees_per_second) const
+{
+    int r = gosu_degrees_per_second * LOOKUPS_PER_DEGREE;
+    while (r >= LOOKUPS_PER_CIRCLE) {
+        r -= LOOKUPS_PER_CIRCLE;
+    }
+    // make sure it is positive, rotating by 359 degrees is the same as -1
+    while (r < 0) {
+        r += LOOKUPS_PER_CIRCLE;
+    }
+    Particle p = *this;
+    p.angular_velocity = r;
     return p;
 }

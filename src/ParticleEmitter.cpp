@@ -256,8 +256,8 @@ static void write_particle_vertices(VertexIterator& vertex, Particle& particle,
     float sizeX = width * particle.scale;
     float sizeY = height * particle.scale;
 
-    float offsX = fast_sin_deg(particle.angle);
-    float offsY = fast_cos_deg(particle.angle);
+    float offsX = fast_lookup_cos(particle.angle);
+    float offsY = fast_lookup_sin(particle.angle);
 
     float distToLeftX   = +offsY * sizeX * particle.center_x;
     float distToLeftY   = -offsX * sizeX * particle.center_x;

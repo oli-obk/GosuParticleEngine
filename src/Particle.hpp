@@ -28,8 +28,8 @@ struct Particle
     float center_x, center_y;
     // change of position per second
     float velocity_x, velocity_y;
-    // change of angle per second
-    float angular_velocity;
+    // change of angle per frame
+    uint16_t angular_velocity;
 
     Color_f color;
 
@@ -41,11 +41,14 @@ struct Particle
     float zoom;
     // percentage by which velocity is decreased per second
     float friction;
-    // angle the image is drawn at in gosu degrees
-    float angle;
+    // angle the image is drawn at in fast_math indice steps
+    uint16_t angle;
 
     // Time to die.
     float time_to_live;
+
+    Particle Angle(float gosu_degrees) const;
+    Particle AngularVelocity(float gosu_degrees_per_second) const;
 
     Particle()
     {
@@ -59,7 +62,7 @@ struct Particle
         scale = 1.0;
         zoom = 0.0;
         friction = 0.0;
-        angle = 0.0;
+        angle = 0;
         time_to_live = 0.0;
     }
 

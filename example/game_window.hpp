@@ -27,6 +27,7 @@ public:
     virtual ~GameWindow();
     virtual void draw();
     virtual void update();
+    virtual void buttonUp(Gosu::Button btn);
 };
 
 #endif // GAMEWINDOW_HPP
