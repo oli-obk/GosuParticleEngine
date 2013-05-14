@@ -22,10 +22,8 @@ typedef struct _vertex2d
 
 typedef std::vector<Particle> ParticleArray;
 typedef ParticleArray::iterator ParticleIterator;
-typedef std::vector<Vertex2d> VertexArray;
-typedef VertexArray::iterator VertexIterator;
-typedef std::vector<Gosu::Color> ColorArray;
-typedef ColorArray::iterator ColorIterator;
+typedef Vertex2d* VertexIterator;
+typedef Gosu::Color* ColorIterator;
 
 class ParticleEmitter
 {
@@ -38,13 +36,10 @@ class ParticleEmitter
 
     ParticleArray particles;
 
-    ColorArray color_array; // Color array.
     size_t color_array_offset; // Offset to colours within VBO.
 
-    VertexArray texture_coords_array; // Tex coord array.
     size_t texture_coords_array_offset; // Offset to texture coords within VBO.
 
-    VertexArray vertex_array; // Vertex array.
     size_t vertex_array_offset; // Offset to vertices within VBO.
 
     // VBO and client-side data arrays.
@@ -62,7 +57,7 @@ class ParticleEmitter
     void update_vbo();
     bool texture_changes() const;
     static bool initialized_fast_math;
-    void write_texture_coords_for_all_particles();
+    void write_texture_coords_for_all_particles(VertexIterator texture_coord);
     void write_texture_coords_for_particles(VertexIterator& texture_coord,
                                                ParticleIterator first, ParticleIterator end);
     void write_vertices_for_particles(VertexIterator& vertex,

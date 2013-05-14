@@ -46,14 +46,14 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     // Fill the array with all the same coords (won't be used if the image changes dynamically).
     texture_info = *image.getData().glTexInfo();
 
-    write_texture_coords_for_all_particles();
-
     // Push whole array to graphics card.
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    GLubyte* dest = static_cast<GLubyte*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+    VertexIterator texture_it = reinterpret_cast<VertexIterator>(dest + texture_coords_array_offset);
+    write_texture_coords_for_all_particles(texture_it);
 
-    glBufferSubData(GL_ARRAY_BUFFER, texture_coords_array_offset,
-                       sizeof(Vertex2d) * VERTICES_IN_PARTICLE * max_particles,
-                       texture_coords_array.data());
+    GLboolean success = glUnmapBuffer(GL_ARRAY_BUFFER);
+    assert(success);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -106,13 +106,10 @@ void ParticleEmitter::init_vbo()
 
     int num_vertices = max_particles * VERTICES_IN_PARTICLE;
 
-    color_array.resize(num_vertices);
     color_array_offset = 0;
 
-    texture_coords_array.resize(num_vertices);
     texture_coords_array_offset = sizeof(Gosu::Color) * num_vertices;
 
-    vertex_array.resize(num_vertices);
     vertex_array_offset = (sizeof(Gosu::Color) + sizeof(Vertex2d)) * num_vertices;
 
     // Create the VBO, but don't upload any data yet.
@@ -166,9 +163,13 @@ void ParticleEmitter::update_vbo()
     // First, we draw all those from after the current, going up to the last one.
     ParticleIterator first = next_particle;
     ParticleIterator end = particles.end();
-    ColorIterator color = color_array.begin();
-    VertexIterator texCoord = texture_coords_array.begin();
-    VertexIterator vertex = vertex_array.begin();
+
+    // memory map buffer
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    GLubyte* dest = static_cast<GLubyte*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+    ColorIterator color = reinterpret_cast<ColorIterator>(dest + color_array_offset);
+    VertexIterator texCoord = reinterpret_cast<VertexIterator>(dest + texture_coords_array_offset);
+    VertexIterator vertex = reinterpret_cast<VertexIterator>(dest + vertex_array_offset);
     write_colors_for_particles(color,
                                    first, end);
     if(texture_changes())
@@ -199,23 +200,8 @@ void ParticleEmitter::update_vbo()
                                      first, end);
     }
 
-    // Upload the data, but only as much as we are actually using.
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferSubData(GL_ARRAY_BUFFER, color_array_offset,
-                           sizeof(Gosu::Color) * VERTICES_IN_PARTICLE * count,
-                           color_array.data());
-
-    if(texture_changes())
-    {
-        glBufferSubData(GL_ARRAY_BUFFER, texture_coords_array_offset,
-                           sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
-                           texture_coords_array.data());
-    }
-
-    glBufferSubData(GL_ARRAY_BUFFER, vertex_array_offset,
-                       sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
-                       vertex_array.data());
-
+    GLboolean success = glUnmapBuffer(GL_ARRAY_BUFFER);
+    assert(success);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -335,9 +321,8 @@ void ParticleEmitter::write_texture_coords_for_particles(VertexIterator& texture
 
 // ----------------------------------------
 // Write all texture coords, assuming the image isn't animated.
-void ParticleEmitter::write_texture_coords_for_all_particles()
+void ParticleEmitter::write_texture_coords_for_all_particles(VertexIterator texture_coord)
 {
-    VertexIterator texture_coord = texture_coords_array.begin();
     for(uint i = 0; i < max_particles; i++)
     {
         write_particle_texture_coords(texture_coord, texture_info);
