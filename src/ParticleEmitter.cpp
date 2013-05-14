@@ -49,13 +49,13 @@ ParticleEmitter::ParticleEmitter(Gosu::Graphics& graphics, std::wstring filename
     write_texture_coords_for_all_particles();
 
     // Push whole array to graphics card.
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
 
-    glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, texture_coords_array_offset,
+    glBufferSubData(GL_ARRAY_BUFFER, texture_coords_array_offset,
                        sizeof(Vertex2d) * VERTICES_IN_PARTICLE * max_particles,
                        texture_coords_array.data());
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ParticleEmitter::draw()
@@ -74,7 +74,7 @@ void ParticleEmitter::draw_vbo()
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture_info.texName);
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
 
     // Only use colour array if colours are dynamic. Otherwise a single colour setting is enough.
         glEnableClientState(GL_COLOR_ARRAY);
@@ -94,14 +94,14 @@ void ParticleEmitter::draw_vbo()
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ParticleEmitter::init_vbo()
 {
-    if(!GL_ARB_vertex_buffer_object)
+    if(!GL_VERSION_1_5)
     {
-       throw std::runtime_error("Ashton::ParticleEmitter requires GL_ARB_vertex_buffer_object, which is not supported by your OpenGL");
+       throw std::runtime_error("Ashton::ParticleEmitter requires GL_VERSION_1_5, which is not supported by your OpenGL");
     }
 
     int num_vertices = max_particles * VERTICES_IN_PARTICLE;
@@ -117,19 +117,19 @@ void ParticleEmitter::init_vbo()
 
     // Create the VBO, but don't upload any data yet.
     int data_size = (sizeof(Gosu::Color) + sizeof(Vertex2d) + sizeof(Vertex2d)) * num_vertices;
-    glGenBuffersARB(1, &vbo_id);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB, data_size, NULL, GL_STREAM_DRAW_ARB);
+    glGenBuffers(1, &vbo_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    glBufferData(GL_ARRAY_BUFFER, data_size, NULL, GL_STREAM_DRAW);
 
     // Check the buffer was actually created.
     int buffer_size = 0;
-    glGetBufferParameterivARB(GL_ARRAY_BUFFER_ARB, GL_BUFFER_SIZE_ARB, &buffer_size);
+    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size);
     if(buffer_size != data_size)
     {
         throw std::runtime_error("Failed to create a VBO to hold emitter data.");
     }
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 bool ParticleEmitter::texture_changes() const
@@ -200,28 +200,28 @@ void ParticleEmitter::update_vbo()
     }
 
     // Upload the data, but only as much as we are actually using.
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo_id);
-        glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, color_array_offset,
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    glBufferSubData(GL_ARRAY_BUFFER, color_array_offset,
                            sizeof(Gosu::Color) * VERTICES_IN_PARTICLE * count,
                            color_array.data());
 
     if(texture_changes())
     {
-        glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, texture_coords_array_offset,
+        glBufferSubData(GL_ARRAY_BUFFER, texture_coords_array_offset,
                            sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
                            texture_coords_array.data());
     }
 
-    glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, vertex_array_offset,
+    glBufferSubData(GL_ARRAY_BUFFER, vertex_array_offset,
                        sizeof(Vertex2d) * VERTICES_IN_PARTICLE * count,
                        vertex_array.data());
 
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 ParticleEmitter::~ParticleEmitter()
 {
-    glDeleteBuffersARB(1, &vbo_id);
+    glDeleteBuffers(1, &vbo_id);
 }
 
 void ParticleEmitter::emit(Particle p)
